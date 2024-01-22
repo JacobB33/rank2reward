@@ -110,11 +110,17 @@ class R3MPolicy(nn.Module):
 
         self.output_size = output_size
         self.fc_head = nn.Sequential(
-            nn.Linear(fc_head_in, 512),
-            nn.LeakyReLU(),
-            nn.Linear(512, 256),
-            nn.LeakyReLU(),
-            nn.Linear(256, output_size),
+            nn.Linear(fc_head_in, 4096),
+            nn.ReLU(),
+            nn.Linear(4096, 4096),
+            nn.ReLU(),
+            nn.Linear(4096, 4096),
+            nn.ReLU(),
+            nn.Linear(4096, 4096),
+            nn.ReLU(),
+            nn.Linear(4096, 4096),
+            nn.ReLU(),
+            nn.Linear(4096, output_size),
         )
 
         self.do_multiply_255 = do_multiply_255

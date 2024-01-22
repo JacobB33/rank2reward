@@ -29,15 +29,22 @@ print(video_files)
 for video_file in video_files:
     video_path = os.path.join(video_dir, video_file)
     frames = load_video(video_path)
-    trajectory = Trajectory(images=frames)
+    trajectory = Trajectory(images=frames[1:])
     trajectories.append(trajectory)
+
 print(len(trajectories[0]))
-ranking_net = RankingNet(epoch_size=64*3, transform_batch_size=64*3, episode_len=31, goal_conditioned=False, train_with_mixup=False, lr=0.0001)
+
+ranking_net = RankingNet(epoch_size=32, transform_batch_size=32, episode_len=30, goal_conditioned=False, train_with_mixup=False, lr=1e-4, state_noise=0.0, train_r3m=False)
+
 # ranking_net.load('ranking_net.pkl')
 # ranking_net = pickle.load(open('ranking_net.pkl', 'rb'))
-loss_dict = ranking_net.train_ranking_net(trajectories, num_epochs=1000, with_tqdm=True)
+loss_dict = ranking_net.train_ranking_net(trajectories, num_epochs=6000, with_tqdm=True)
 print(loss_dict)
-
+plt.cla()
+plt.clf()
+plt.plot(loss_dict['ranking_loss'])
+plt.title('Ranking Loss')
+plt.show()
 for traj in trajectories:
     traj_rank = []
     for i in range(len(traj)):
@@ -48,6 +55,6 @@ for traj in trajectories:
     plt.show()
 
 
-# pickle.dump(ranking_net, open('ranking_net.pkl', 'wb'))
-# pickle.dump(loss_dict, open('loss_dict.pkl', 'wb'))
+pickle.dump(ranking_net, open('ranking_net.pkl', 'wb'))
+pickle.dump(loss_dict, open('loss_dict.pkl', 'wb'))
 

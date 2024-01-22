@@ -52,9 +52,9 @@ class RankingNet:
         # Define the transforms we apply to the images
         self._train_transforms = T.Compose([
             T.Resize(256),
-            T.ColorJitter(brightness=0.5, contrast=0.1, saturation=0.1, hue=0.3),
-            T.RandomRotation(15),  # +/-15 degrees of random rotation
-            T.RandomCrop(224),  # T.CenterCrop(224)
+            # T.ColorJitter(brightness=0.5, contrast=0.1, saturation=0.1, hue=0.3),
+            # T.RandomRotation(15),  # +/-15 degrees of random rotation
+            T.CenterCrop(224)#T.RandomCrop(224),  # T.CenterCrop(224)
         ])
 
         if self.goal_conditioned:
@@ -72,6 +72,7 @@ class RankingNet:
         :return: float rank.
         """
         image_tensor = T.ToTensor()(image).unsqueeze(0).to(self.device)
+        output_tesnsor = self._train_transforms(image_tensor)
         if goal:
             goal = T.ToTensor()(goal).unsqueeze(0).to(self.device)
         with torch.no_grad():
@@ -147,7 +148,7 @@ class RankingNet:
 
         ranking_labels = F.one_hot(torch.Tensor(labels).long().to(self.device), 2).float()
 
-        loss_monotonic = torch.Tensor([0.0])
+        loss_monotonic = None
         if self.train_with_mixup:
             rank_states = torch.cat([expert_processed_images_tensor, expert_processed_images_other_tensor], dim=0)
             rank_labels = torch.cat([ranking_labels[:, 0], ranking_labels[:, 1]], dim=0).unsqueeze(1)
@@ -165,7 +166,6 @@ class RankingNet:
             expert_logits = torch.cat([expert_logits_t, expert_logits_other_t], dim=-1)
 
             loss_monotonic = self.bce_with_logits_criterion(expert_logits, ranking_labels)
-
         return loss_monotonic
 
     def _assert_same_traj_len(self, trajectory_list: List) -> None:
